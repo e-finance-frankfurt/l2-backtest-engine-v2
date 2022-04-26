@@ -24,17 +24,15 @@ class BaseAgent(abc.ABC):
             str, agent name
         """
 
+        # agent has market access via market_interface instance
+        self.market_interface = MarketInterface(
+            exposure_limit=1e6, # ...
+            latency=10, # in us (microseconds) 
+            transaction_cost_factor=1e-3, # 10 bps
+        )
+
+        # ...
         self.name = name
-
-        # containers for related class instances
-        self.markets = MarketState.instances
-        self.orders = Order.history
-        self.trades = Trade.history
-
-        # settings
-        self.exposure_limit = 1e6 # ...
-        self.latency = 0 # in milliseconds, used only in submit method
-        self.transaction_cost_factor = 1e-3 # 10 bps
 
     # event management ---
 
@@ -79,22 +77,11 @@ class BaseAgent(abc.ABC):
 
         raise NotImplementedError("To be implemented in subclass.")
 
-
-class Singleton(type):
-
-    _instances = {}
-    
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-    
-        return cls._instances[cls]
-
-
-class MarketInterface(metaclass=Singleton): 
+class MarketInterface: 
 
     def __init__(self,
-        latency:int=10, # in us (microseconds)
+        exposure_limit:float=1e6,
+        latency:int=10, # in us (microseconds) 
         transaction_cost_factor:float=1e-3, # 10 bps
     ):
         """
@@ -120,8 +107,9 @@ class MarketInterface(metaclass=Singleton):
         self.trades = Trade.history
 
         # settings
+        self.exposure_limit = exposure_limit # ...
         self.latency = latency # in microseconds ("U"), used only in submit method
-        self.transaction_cost_factor = transaction_cost_factor 
+        self.transaction_cost_factor = transaction_cost_factor # in bps
 
     # order management ---
 
