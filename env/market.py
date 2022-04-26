@@ -37,7 +37,8 @@ class MarketState:
 
         - orders submitted by the agent do NOT have market impact!
         - liquidity is added to the end of the liquidity_list
-        - liquidity is assumed to be taken from the start of the liquidity_list 
+        - liquidity is assumed to always be taken from the start of the 
+        liquidity_list 
         - ...
 
         All market instances are stored in and may be accessed through the
@@ -784,7 +785,8 @@ class Order:
         del class_reference.history[:]
 
 
-class OrderPool: # TODO
+# TODO
+class OrderPool: 
     
     def __init__(self):    
         pass 
@@ -855,7 +857,8 @@ class Trade:
         del class_reference.history[:]
 
 
-class TradePool: # TODO
+# TODO
+class TradePool: 
     
     def __init__(self):    
         pass 
