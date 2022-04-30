@@ -102,9 +102,9 @@ class MarketInterface:
         """
 
         # containers for related class instances
-        self.market_states = MarketState.instances
-        self.orders = Order.history
-        self.trades = Trade.history
+        self.market_state_list = MarketState.instances
+        self.order_list = Order.history
+        self.trade_list = Trade.history
 
         # settings
         self.exposure_limit = exposure_limit # ...
@@ -163,7 +163,7 @@ class MarketInterface:
         """
 
         # first, assert that market exists
-        assert market_id in self.markets, \
+        assert market_id in self.market_state_list, \
             "market_id '{market_id}' does not exist".format(
                 market_id=market_id,
             )
@@ -173,7 +173,7 @@ class MarketInterface:
             exposure_change = quantity * limit
         # calculate position value for market order (estimated)
         else:
-            exposure_change = quantity * self.markets[market_id].mid_point
+            exposure_change = quantity * self.market_state_list[market_id].mid_point
 
         # ...
         exposure_test = self.exposure.copy() # isolate changes
@@ -204,7 +204,6 @@ class MarketInterface:
         # string representation
         string = f"""
         ---
-        name:           {self.name}
         timestamp:      {timestamp_global} (+{self.latency} ms)
         ---
         exposure:       {self.exposure_total}
@@ -231,7 +230,7 @@ class MarketInterface:
             list, filtered Order instances
         """
 
-        orders = self.orders
+        orders = self.order_list
 
         # orders must have requested market_id
         if market_id:
@@ -257,7 +256,7 @@ class MarketInterface:
             list, filtered Trade instances
         """
 
-        trades = self.trades
+        trades = self.trade_list
 
         # trades must have requested market_id
         if market_id:
@@ -283,7 +282,7 @@ class MarketInterface:
             dict, {<market_id>: <exposure>, *}
         """
 
-        for market_id, _ in self.markets.items():
+        for market_id, _ in self.market_state_list.items():
             
             # trades filtered per market
             trades_buy = self.get_filtered_trades(market_id, side="buy")
@@ -336,7 +335,7 @@ class MarketInterface:
             dict, {<market_id>: <pnl_realized>, *}
         """
         
-        for market_id, _ in self.markets.items():
+        for market_id, _ in self.market_state_list.items():
 
             # trades filtered per market
             trades_buy = self.get_filtered_trades(market_id, side="buy")
@@ -384,7 +383,7 @@ class MarketInterface:
             dict, {<market_id>: <pnl_unrealized>, *}
         """
 
-        for market_id, market in self.markets.items():
+        for market_id, market in self.market_state_list.items():
 
             # trades filtered per market
             trades_buy = self.get_filtered_trades(market_id, side="buy")
@@ -451,7 +450,7 @@ class MarketInterface:
             float, accumulated transaction cost
         """
 
-        result = sum(t.price * t.quantity for t in self.trades)
+        result = sum(t.price * t.quantity for t in self.trade_list)
         result = result * self.transaction_cost_factor
         result = round(result, 3)
 
