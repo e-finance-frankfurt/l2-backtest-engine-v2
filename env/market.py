@@ -62,7 +62,7 @@ class MarketState:
         # ...
         try:
             timestamp = self._timestamp
-        except NameError:
+        except:
             timestamp = None
         
         # based on current market state, return timestamp
@@ -84,7 +84,7 @@ class MarketState:
         # ...
         try:
             state = (self._posttrade_state_bid, self._posttrade_state_ask)
-        except NameError:
+        except:
             state = None
 
         # based on current market state, return entire post-trade dictionary
@@ -99,11 +99,41 @@ class MarketState:
         # ...
         try:
             midpoint = self._midpoint_this
-        except NameError:
+        except:
             midpoint = None
         
         # based on current market state, return midpoint
         return midpoint
+
+    @property
+    def best_bid(self):
+        """
+        ...
+        """
+
+        # ...
+        try:
+            best_bid = max(self._posttrade_state_bid)
+        except:
+            best_bid = None
+        
+        # based on current market state, return best_bid
+        return best_bid
+
+    @property
+    def best_ask(self):
+        """
+        ...
+        """
+
+        # ...
+        try:
+            best_ask = min(self._posttrade_state_ask)
+        except:
+            best_ask = None
+        
+        # based on current market state, return best_ask
+        return best_ask
 
     @property
     def tick_size(self): # infer tick_size at runtime
@@ -367,8 +397,12 @@ class MarketState:
 
         # orders must have status 'ACTIVE'
         orders = filter(lambda order: order.status == "ACTIVE", Order.history)
+        # orders must have corresponding market_id 
         orders = filter(lambda order: order.market_id == self.market_id, orders)
+        # orderst must have timestamp greater than current timestamp
         orders = filter(lambda order: order.timestamp <= self._timestamp, orders)
+        # important: cast iterable into list! 
+        orders = list(orders) 
 
         # filter buy orders
         orders_buy = filter(lambda order: order.side == "buy", orders)
@@ -382,8 +416,8 @@ class MarketState:
         # filter sell orders
         orders_sell = filter(lambda order: order.side == "sell", orders)
         # sort by (1) limit ASCENDING and (2) time ASCENDING
-        orders_sell = sorted(orders, key=lambda x: x.timestamp)
-        orders_sell = sorted(orders, 
+        orders_sell = sorted(orders_sell, key=lambda x: x.timestamp)
+        orders_sell = sorted(orders_sell, 
             key=lambda x: x.limit or max(self._posttrade_state_bid), reverse=False
         )
         self._orders_sell = orders_sell
@@ -617,10 +651,9 @@ class MarketState:
         instance with a new one so that we do not need to reset everything 
         manually. 
         """
-        
-        # ...
-        for market_id, market in class_reference.instances.items():
-            class_reference.instances[market_id] = class_reference(market_id)
+
+        # delete all elements in Order.history
+        del class_reference.instances[:]
 
 
 class Order:
