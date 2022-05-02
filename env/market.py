@@ -21,19 +21,19 @@ class MarketState:
         from the price levels available in the market state. There are two 
         states that are continually updated ...
 
-        - _posttrade_state (post-trade, consistent with historical data)
-        - _pretrade_state_bid, _pretrade_state_ask (pre-trade, temporary)
+        - `_posttrade_state` (post-trade, consistent with historical data)
+        - `_pretrade_state_bid`, `_pretrade_state_ask` (pre-trade, temporary)
 
         ... that reflect the post-trade market state (based on original data)
         and pre-trade market state (used to match agent orders against),
         respectively. In order to manipulate these states, this class implements
         two methods ...
 
-        - update(self, book_state, trade_state)
-        - match(self)
+        - `update(book_state, trade_state)`
+        - `match()`
         
-        NOTE: This model of a market state is required to make a set of key 
-        assumptions, especially due to the nature of level 2 data ...
+        Note that this model of a market state requires a set of assumptions, 
+        especially due to the nature of level 2 data:
 
         - orders submitted by the agent do NOT have market impact!
         - liquidity is added to the end of the liquidity_list
@@ -58,6 +58,9 @@ class MarketState:
     
     @property
     def timestamp(self):
+        """
+        `timestamp` is based on the most recent book update. 
+        """
         
         # ...
         try:
@@ -108,7 +111,7 @@ class MarketState:
     @property
     def best_bid(self):
         """
-        ...
+        `best_bid` is based on the most recent book update. 
         """
 
         # ...
@@ -123,7 +126,7 @@ class MarketState:
     @property
     def best_ask(self):
         """
-        ...
+        `best_ask` is based on the most recent book update. 
         """
 
         # ...
@@ -169,14 +172,14 @@ class MarketState:
         The pre-trade state is used to match simulated orders against. 
 
         Main methods are ...
-        - `_update_posttrade_state`: ...
-        - `_update_pretrade_state`: ...
-        - `_update_simulated_orders`: ...
+        - `_update_posttrade_state()`: ...
+        - `_update_pretrade_state()`: ...
+        - `_update_simulated_orders()`: ...
 
         Helper methods are ...
-        - `_add_liquidity`: add liquidity to a given price level
-        - `_use_liquidity`: remove liquidity from a given price level
-        - `_restore_liquidity`: restore liquidity for a given price level
+        - `_add_liquidity(...)`: add liquidity to a given price level
+        - `_use_liquidity(...)`: remove liquidity from a given price level
+        - `_restore_liquidity(...)`: restore liquidity for a given price level
 
         Note that this implementation does not directly model both sides of the 
         market, but we keep track of the midpoint to separate bid and ask side. 
@@ -189,7 +192,7 @@ class MarketState:
 
         # unpack pd.Series into list for each book update and trade update
         timestamp, *book_update = book_update.values
-        _, *trade_update = trade_update.values
+        _, *trade_update = trade_update.values # optional (may be empty pd.Series)
 
         # ensure that each ask is larger than its respective bid
         is_corrupted = any(bid >= ask 
@@ -330,10 +333,10 @@ class MarketState:
         # create deepcopy of post-trade state (bid side) as a basis to compute pre-trade state
         self._pretrade_state_bid = copy.deepcopy(self._posttrade_state_bid) 
         # ...
-        self._pretrade_state_ask = copy.deepcopy(self._posttrade_state_ask) 
+        self._pretrade_state_ask = copy.deepcopy(self._posttrade_state_ask)
 
         # check that trade_state is a nested list, as otherwise it must be empty
-        require_revert = isinstance(self._trade_this[0], list)
+        require_revert = isinstance(self._trade_this[0], list) 
 
         # if there exists a valid trade_state, run pre-trade reversion steps
         if require_revert: 
@@ -652,8 +655,8 @@ class MarketState:
         manually. 
         """
 
-        # delete all elements in Order.history
-        del class_reference.instances[:]
+        # delete all elements in MarketState.instances (dictionary)
+        del class_reference.instances.clear() 
 
 
 class Order:
@@ -814,7 +817,7 @@ class Order:
         Reset order history.
         """
         
-        # delete all elements in Order.history
+        # delete all elements in Order.history (list)
         del class_reference.history[:]
 
 
@@ -886,7 +889,7 @@ class Trade:
         Reset trade history. 
         """
         
-        # delete all elements in Trade.history
+        # delete all elements in Trade.history (list)
         del class_reference.history[:]
 
 

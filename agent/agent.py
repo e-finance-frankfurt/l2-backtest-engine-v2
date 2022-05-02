@@ -6,7 +6,7 @@
 
 # use relative imports for other modules 
 from ..env.market import MarketState, Order, Trade
-from ..env.replay import MarketReplay # use timestamp_global
+from ..env.replay import Backtest # use timestamp_global
 
 # general imports
 import abc
@@ -134,7 +134,7 @@ class MarketInterface:
 
         # submit order
         order = Order(
-            timestamp=MarketReplay.timestamp_global + pd.Timedelta(self.latency, "U"), # microseconds
+            timestamp=Backtest.timestamp_global + pd.Timedelta(self.latency, "us"), # microseconds
             market_id=market_id,
             side=side,
             quantity=quantity,
@@ -199,7 +199,7 @@ class MarketInterface:
         """
 
         # read global timestamp from Backtest class attribute
-        timestamp_global = MarketReplay.timestamp_global
+        timestamp_global = Backtest.timestamp_global
 
         # string representation
         string = f"""
