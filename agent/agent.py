@@ -1,9 +1,6 @@
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: ...
-# TODO: ...
-
 # use relative imports for other modules 
 from ..env.market import MarketState, Order, Trade
 from ..env.replay import Backtest # use timestamp_global
