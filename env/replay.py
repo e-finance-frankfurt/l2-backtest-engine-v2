@@ -1,9 +1,6 @@
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: add seed
-# TODO: ...
-
 # use relative imports for other modules 
 from ..env.market import MarketState, Order, Trade
 
@@ -18,7 +15,7 @@ import time
 
 from concurrent import futures
 
-SOURCE_DIRECTORY = "./data/" # <----------------------------------------------- ???
+SOURCE_DIRECTORY = "./data/" 
 DATETIME = "TIMESTAMP_UTC"
 
 class Episode:
@@ -671,11 +668,11 @@ class Backtest:
 
     def run_episode_broadcast(self, 
         identifier_list:list,
-        date_start:str, 
-        date_end:str, 
-        time_start_buffer:str,
-        time_start:str, 
-        time_end:str, 
+        date_start:str="2016-01-01", 
+        date_end:str="2016-03-31", 
+        time_start_buffer:str="08:00:00",
+        time_start:str="08:10:00", 
+        time_end:str="16:30:00", 
     ):
         """
         Run agent against a series of broadcast episodes, that is, run the same 
@@ -743,11 +740,11 @@ class Backtest:
         identifier_list:list,
         date_start:str="2016-01-01",
         date_end:str="2016-03-31",
-        episode_interval:int=None, # timestamp quantization
+        episode_interval:int=30, # timestamp quantization
         episode_shuffle:bool=True,
         episode_buffer:int=5,
         episode_length:int=30, 
-        num_episodes:int=None,        
+        num_episodes:int=10,        
     ):
         """
         Run agent against a series of generated episodes, that is, run a similar 
