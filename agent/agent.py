@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # use relative imports for other modules 
-from ..env.market import MarketState, Order, Trade
-from ..env.replay import Backtest # use timestamp_global
+from env.market import MarketState, Order, Trade
+from env.replay import Backtest # use timestamp_global
 
 # general imports
 import abc
