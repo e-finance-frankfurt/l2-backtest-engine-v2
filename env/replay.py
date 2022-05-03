@@ -7,6 +7,7 @@ from ..env.market import MarketState, Order, Trade
 # general imports
 import datetime
 import logging
+
 import os
 import pandas as pd
 import random
@@ -487,7 +488,7 @@ class Backtest:
         )
 
         # match standing agent orders against pre-trade state
-        self.market_state_list[market_id].match()
+        MarketState.instances[market_id].match()
 
     def _agent_step(self, source_id, either_update, timestamp, timestamp_next):
         """
@@ -560,9 +561,10 @@ class Backtest:
                 episode_start=episode_start,
                 episode_end=episode_end,
             )
-        # raise Exception if episode could not be generated
+        # return if episode could not be generated
         except:
-            raise Exception("(ERROR) could not run episode with the specified parameters")
+            logging.info("(ERROR) could not run episode with the specified parameters")
+            return
 
         # build market environment ---
 
@@ -627,106 +629,6 @@ class Backtest:
         self.result_list.append(result)
 
     # option 2: run multiple episodes ---
-
-    def run_episode_list(self, 
-        identifier_list:list,
-        episode_list:list, 
-    ):
-        """
-        Run agent against a series of specified episodes, that is, work through 
-        the episode_list. Uses Backtest.run(...) under the hood. 
-
-        :param identifier_list:
-            list, <market_id>.BOOK/TRADES identifier for each respective data source
-        :param episode_list:
-            list, includes (episode_start_buffer, episode_start, episode_end) tuples
-        """
-
-        # iterate over episode_list ---
-
-        # for each episode ...
-        for episode_start_buffer, episode_start, episode_end in episode_list:
-
-            # try to run episode for the specified parameters
-            try:
-                self.run(identifier_list=identifier_list,
-                    episode_start_buffer=pd.Timestamp(episode_start_buffer), 
-                    episode_start=pd.Timestamp(episode_start), 
-                    episode_end=pd.Timestamp(episode_end), 
-                )
-            # if episode failed, do nothing
-            except:
-                pass # skip      
-
-    def run_episode_broadcast(self, 
-        identifier_list:list,
-        date_start:str="2016-01-01", 
-        date_end:str="2016-03-31", 
-        time_start_buffer:str="08:00:00",
-        time_start:str="08:10:00", 
-        time_end:str="16:30:00", 
-    ):
-        """
-        Run agent against a series of broadcast episodes, that is, run the same 
-        episode (in terms of time_start_buffer, time_start, and time_end) for 
-        each date between date_start and date_end. Uses Backtest.run(...) under 
-        the hood. 
-
-        :param identifier_list:
-            list, <market_id>.BOOK/TRADES identifier for each respective data source
-        :param date_start:
-            str, start date after which episodes are generated, default is "2016-01-01"
-        :param date_end:
-            str, end date before which episodes are generated, default is "2016-03-31"
-        :param time_start_buffer:
-            int, ...
-        :param time_start:
-            bool, ...
-        :param time_end:
-            int, ...
-        """
-
-        # pd.Timestamp
-        date_start = pd.Timestamp(date_start)
-        date_end = pd.Timestamp(date_end)
-
-        # pd.Timedelta
-        time_start_buffer = pd.Timedelta(time_start_buffer)
-        time_start = pd.Timedelta(time_start)
-        time_end = pd.Timedelta(time_end)
-
-        # build episode_date_list ---
-
-        # ...
-        episode_date_list = pd.date_range(start=date_start, end=date_end + pd.Timedelta("1d"),
-            freq="1d", 
-            normalize=True, # start at 00:00:00.000
-        )
-
-        # ...
-        test_list = [
-            lambda timestamp: timestamp.weekday() not in [5, 6], # sat, sun
-            # ...
-        ]
-        episode_date_list = [timestamp_start for timestamp_start in episode_date_list 
-            if all(test(timestamp_start) for test in test_list)
-        ]
-
-        # iterate over episode_date_list ---
-
-        # for each date + broadcast time_start_buffer, time_start, and time_end ...
-        for episode_date in episode_date_list:
-
-            # try to run episode for the specified parameters
-            try:
-                self.run(identifier_list=identifier_list,
-                    episode_start_buffer=episode_date + time_start_buffer,
-                    episode_start=episode_date + time_start,
-                    episode_end=episode_date + time_end,
-                )
-            # if episode failed, do nothing
-            except:
-                pass # skip
 
     def run_episode_generator(self, 
         identifier_list:list,
@@ -800,20 +702,111 @@ class Backtest:
 
         # take next episode until ...
         while episode_counter < min(len(episode_start_list), num_episodes):
+            
+            # ...
+            status = self.run(identifier_list=identifier_list,
+                episode_start_buffer=episode_start_list[episode_index],
+                episode_start=episode_start_list[episode_index] + pd.Timedelta(episode_buffer, "min"),
+                episode_end=episode_start_list[episode_index] + pd.Timedelta(episode_length, "min"),
+            )
 
-            # try to run episode for the specified parameters
-            try:
-                self.run(identifier_list=identifier_list,
-                    episode_start_buffer=episode_start_list[episode_index],
-                    episode_start=episode_start_list[episode_index] + pd.Timedelta(episode_buffer, "min"),
-                    episode_end=episode_start_list[episode_index] + pd.Timedelta(episode_length, "min"),
-                )
-                episode_counter = episode_counter + 1
-            # except running the episode failed, do nothing
-            except:
-                pass # skip
             # in either case, update index
-            finally: 
-                episode_index = episode_index + 1
+            episode_index = episode_index + 1
+
+            # update counter only if episode has been successfully run
+            if status:
+                episode_counter = episode_counter + 1
+
+    def run_episode_broadcast(self, 
+        identifier_list:list,
+        date_start:str="2016-01-01", 
+        date_end:str="2016-03-31", 
+        time_start_buffer:str="08:00:00",
+        time_start:str="08:10:00", 
+        time_end:str="16:30:00", 
+    ):
+        """
+        Run agent against a series of broadcast episodes, that is, run the same 
+        episode (in terms of time_start_buffer, time_start, and time_end) for 
+        each date between date_start and date_end. Uses Backtest.run(...) under 
+        the hood. 
+
+        :param identifier_list:
+            list, <market_id>.BOOK/TRADES identifier for each respective data source
+        :param date_start:
+            str, start date after which episodes are generated, default is "2016-01-01"
+        :param date_end:
+            str, end date before which episodes are generated, default is "2016-03-31"
+        :param time_start_buffer:
+            int, ...
+        :param time_start:
+            bool, ...
+        :param time_end:
+            int, ...
+        """
+
+        # pd.Timestamp
+        date_start = pd.Timestamp(date_start)
+        date_end = pd.Timestamp(date_end)
+
+        # pd.Timedelta
+        time_start_buffer = pd.Timedelta(time_start_buffer)
+        time_start = pd.Timedelta(time_start)
+        time_end = pd.Timedelta(time_end)
+
+        # build episode_date_list ---
+
+        # ...
+        episode_date_list = pd.date_range(start=date_start, end=date_end + pd.Timedelta("1d"),
+            freq="1d", 
+            normalize=True, # start at 00:00:00.000
+        )
+
+        # ...
+        test_list = [
+            lambda timestamp: timestamp.weekday() not in [5, 6], # sat, sun
+            # ...
+        ]
+        episode_date_list = [timestamp_start for timestamp_start in episode_date_list 
+            if all(test(timestamp_start) for test in test_list)
+        ]
+
+        # iterate over episode_date_list ---
+
+        # for each date + broadcast time_start_buffer, time_start, and time_end ...
+        for episode_date in episode_date_list:
+
+            # ...
+            self.run(identifier_list=identifier_list,
+                episode_start_buffer=episode_date + time_start_buffer,
+                episode_start=episode_date + time_start,
+                episode_end=episode_date + time_end,
+            )
+
+    def run_episode_list(self, 
+        identifier_list:list,
+        episode_list:list, 
+    ):
+        """
+        Run agent against a series of specified episodes, that is, work through 
+        the episode_list. Uses Backtest.run(...) under the hood. 
+
+        :param identifier_list:
+            list, <market_id>.BOOK/TRADES identifier for each respective data source
+        :param episode_list:
+            list, includes (episode_start_buffer, episode_start, episode_end) tuples
+        """
+
+        # iterate over episode_list ---
+
+        # for each episode ...
+        for episode_start_buffer, episode_start, episode_end in episode_list:
+
+            # ...
+            self.run(identifier_list=identifier_list,
+                episode_start_buffer=pd.Timestamp(episode_start_buffer), 
+                episode_start=pd.Timestamp(episode_start), 
+                episode_end=pd.Timestamp(episode_end), 
+            )
 
 
