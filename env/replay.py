@@ -462,15 +462,7 @@ class Backtest:
         # from arguments
         self.agent = agent
 
-        # dynamically set (episode)
-        self.episode = None
-
-        # statically referenced (market)
-        self.market_state_list = MarketState.instances
-        self.order_list = Order.history
-        self.trade_list = Trade.history
-
-        # ...
+        # TODO: ...
         self.result_list = []    
 
     # market/agent step ---
@@ -489,7 +481,7 @@ class Backtest:
         """
 
         # update market state
-        self.market_state_list[market_id].update(
+        MarketState.instances[market_id].update(
             book_update=book_update,
             trade_update=trade_update,
         )
