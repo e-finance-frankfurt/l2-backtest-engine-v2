@@ -656,7 +656,7 @@ class MarketState:
         """
 
         # delete all elements in MarketState.instances (dictionary)
-        del class_reference.instances.clear() 
+        class_reference.instances.clear() 
 
 
 class Order:
