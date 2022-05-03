@@ -150,36 +150,36 @@ if __name__ == "__main__":
     # TODO: RUN BACKTEST. Please refer to the corresponding file for more 
     # information. 
 
-    # Option 3: run agent against a series of generated episodes, that is, 
+    # Option 1: run agent against a series of generated episodes, that is, 
     # generate episodes with the same episode_buffer and episode_length
     backtest.run_episode_generator(identifier_list=identifier_list,
-        date_start="2021-01-01", # ...
-        date_end="2021-02-28", # ...
-        episode_interval=30, # used to build grid of potential starting points (here: 30 minutes)
-        episode_shuffle=True, # whether or not to shuffle episodes
-        episode_buffer=5, # how long to wait before agent is informed about updates (here: 5 minutes)
-        episode_length=30, # define how long each episode should be (here: 30 minutes)
-        num_episodes=10, # define how many episodes should be generated 
+        date_start="2021-01-01", 
+        date_end="2021-02-28", 
+        episode_interval=30, 
+        episode_shuffle=True, 
+        episode_buffer=5, 
+        episode_length=30, 
+        num_episodes=10, 
     )
 
     # Option 2: run agent against a series of broadcast episodes, that is, 
     # broadcast the same timestamps for every date between date_start and 
     # date_end
     backtest.run_episode_broadcast(identifier_list=identifier_list,
-        date_start="2021-01-01", # ...
-        date_end="2021-02-28", # ...
-        time_start_buffer="08:00:00", # for every date, start buffering at this time
-        time_start="08:30:00", # for every date, start trading at this time
-        time_end="16:30:00", # for every date, end trading at this time
+        date_start="2021-01-01", 
+        date_end="2021-02-28", 
+        time_start_buffer="08:00:00", 
+        time_start="08:30:00", 
+        time_end="16:30:00",
     )
 
-    # Option 1: run agent against a series of specified episodes, that is, 
+    # Option 3: run agent against a series of specified episodes, that is, 
     # list a tuple (episode_start_buffer, episode_start, episode_end) for each 
     # episode
     backtest.run_episode_list(identifier_list=identifier_list,
         episode_list=[
-            ("2021-01-01T08:00:00", "2021-01-01T08:30:00", "2021-01-01T09:30:00"), # episode 1
-            ("2021-01-01T15:00:00", "2021-01-01T15:30:00", "2021-01-01T16:30:00"), # episode 2
+            ("2021-01-01T08:00:00", "2021-01-01T08:30:00", "2021-01-01T09:30:00"), 
+            ("2021-01-01T15:00:00", "2021-01-01T15:30:00", "2021-01-01T16:30:00"), 
             # ... 
         ],
     )
