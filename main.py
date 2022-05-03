@@ -1,8 +1,8 @@
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from agent import BaseAgent
-from replay import Backtest, Replay
+from agent.agent import BaseAgent
+from env.replay import Backtest
 
 import numpy as np
 import pandas as pd
