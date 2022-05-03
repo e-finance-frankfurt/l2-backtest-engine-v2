@@ -7,7 +7,7 @@ from ..env.market import MarketState, Order, Trade
 # general imports
 import datetime
 import logging
-
+logging.basicConfig(level=logging.NOTSET) # logging.basicConfig(level=logging.CRITICAL)
 import os
 import pandas as pd
 import random
