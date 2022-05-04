@@ -5,16 +5,15 @@
 from env.market import MarketState, Order, Trade
 
 # general imports
+import copy
 import datetime
 import logging
-logging.basicConfig(level=logging.CRITICAL) # logging.basicConfig(level=logging.CRITICAL)
+logging.basicConfig(level=logging.CRITICAL) # logging.basicConfig(level=logging.NOTSET)
 import os
 import pandas as pd
 import random
 random.seed(42)
 import time
-
-from concurrent import futures
 
 SOURCE_DIRECTORY = "./data/" 
 DATETIME = "TIMESTAMP_UTC"
@@ -453,15 +452,18 @@ class Backtest:
         agent, # backtest is wrapper for trading agent
     ):
         """
-        Backtest wrapper that is used to evaluate a trading Agent on one or 
+        Backtest wrapper that is used to evaluate a trading agent on one or 
         multiple episodes of historical market data. 
+
+        Note that the original _agent is used only to derive a fresh copy with 
+        each additional episode. 
 
         :param agent:
             Agent, trading agent instance that is to be evaluated
         """
 
         # from arguments
-        self.agent = agent
+        self._agent = agent 
 
         # TODO: ...
         self.result_list = []    
@@ -564,15 +566,20 @@ class Backtest:
         # return if episode could not be generated
         except:
             logging.info("(ERROR) could not run episode with the specified parameters")
-            return
+            return # do nothing
 
-        # build market environment ---
+        # setup agent ---
+
+        # create fresh copy of the original agent instance
+        self.agent = copy.copy(self._agent)
+
+        # setup market environment ---
 
         # identify market instances based on market_id
         identifier_list = set(identifier.split(".")[0] for identifier
             in identifier_list
         )
-        # setup market instances
+        # create market_state instances
         for market_id in identifier_list:
             _ = MarketState(market_id)
 
@@ -610,9 +617,22 @@ class Backtest:
 
             # finally, report the current state of the agent
             if not (step % display_interval):
-                print(self.agent.market_interface)
+                print(self.agent)
         
-        # delete market environment ---
+        # report result ---
+
+        # TODO: ...
+        result = None
+
+        # save report
+        self.result_list.append(result)
+
+        # reset agent ---
+
+        # ...
+        del self.agent
+
+        # reset market environment ---
 
         # delete all MarketState instances in MarketState.instances class attribute
         MarketState.reset_instances()
@@ -620,13 +640,6 @@ class Backtest:
         Order.reset_history()
         # delete all Trade instances in Trade.history class attribute
         Trade.reset_history()
-
-        # report outcome ---
-
-        # ...
-        result = None
-        # save report
-        self.result_list.append(result)
 
     # option 2: run multiple episodes ---
 
