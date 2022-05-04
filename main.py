@@ -110,26 +110,26 @@ if __name__ == "__main__":
     # TODO: SELECT SOURCES. You may delete or comment out the rest.
 
     identifier_list = [
+        # ADIDAS
+        "Adidas.BOOK", "Adidas.TRADES",
+        # ALLIANZ
+        "Allianz.BOOK", "Allianz.TRADES",
         # BASF
-        "BAS.BOOK", "BAS.TRADES", 
+        "BASF.BOOK", "BASF.TRADES",
         # Bayer
-        "BAY.BOOK", "BAY.TRADES", 
+        "Bayer.BOOK", "Bayer.TRADES",
         # BMW
-        "BMW.BOOK", "BMW.TRADES", 
-        # Commerzbank
-        "CBK.BOOK", "CBK.TRADES", 
+        "BMW.BOOK", "BMW.TRADES",
+        # Continental
+        "Continental.BOOK", "Continental.TRADES",
+        # Covestro
+        "Covestro.BOOK", "Covestro.TRADES",
         # Daimler
-        "DAI.BOOK", "DAI.TRADES", 
+        "Daimler.BOOK", "Daimler.TRADES",
         # Deutsche Bank
-        "DBK.BOOK", "DBK.TRADES", 
-        # E.ON
-        "EON.BOOK", "EON.TRADES", 
-        # Fresenius Medical Care
-        "FME.BOOK", "FME.TRADES", 
-        # Fresenius
-        "FRE.BOOK", "FRE.TRADES", 
-        # RWE
-        "RWE.BOOK", "RWE.TRADES", 
+        "DeutscheBank.BOOK", "DeutscheBank.TRADES",
+        # DeutscheBörse
+        "DeutscheBörse.BOOK", "DeutscheBörse.TRADES",
     ]
 
     # TODO: INSTANTIATE AGENT. Please refer to the corresponding file for more 
