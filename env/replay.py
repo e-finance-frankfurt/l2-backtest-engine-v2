@@ -15,7 +15,7 @@ import random
 random.seed(42)
 import time
 
-SOURCE_DIRECTORY = "./data/" 
+SOURCE_DIRECTORY = "/home/jovyan/_shared_storage/read_only/efn2_backtesting"
 DATETIME = "TIMESTAMP_UTC"
 
 class Episode:
