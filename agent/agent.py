@@ -74,6 +74,35 @@ class BaseAgent(abc.ABC):
 
         raise NotImplementedError("To be implemented in subclass.")
 
+    def __str__(self):
+        """
+        String representation.
+        """
+
+        # read global timestamp from Backtest class attribute
+        timestamp_global = Backtest.timestamp_global
+
+        # string representation
+        string = f"""
+        ---
+        timestamp:      {timestamp_global} (+{self.market_interface.latency} ms)
+        ---
+        exposure:       {self.market_interface.exposure_total}
+        pnl_realized:   {self.market_interface.pnl_realized_total}
+        pnl_unrealized: {self.market_interface.pnl_unrealized_total}
+        ---
+        """
+
+        return textwrap.dedent(string)
+
+    def reset(self):
+        """
+        Reset agent. 
+        """
+
+        # ...
+        return self.__init__(self.name)
+
 class MarketInterface: 
 
     def __init__(self,
@@ -187,29 +216,6 @@ class MarketInterface:
                 exposure_change=exposure_change,
                 exposure_left=self.exposure_left,
             )
-
-    # string representation ---
-
-    def __str__(self):
-        """
-        String representation.
-        """
-
-        # read global timestamp from Backtest class attribute
-        timestamp_global = Backtest.timestamp_global
-
-        # string representation
-        string = f"""
-        ---
-        timestamp:      {timestamp_global} (+{self.latency} ms)
-        ---
-        exposure:       {self.exposure_total}
-        pnl_realized:   {self.pnl_realized_total}
-        pnl_unrealized: {self.pnl_unrealized_total}
-        ---
-        """
-
-        return textwrap.dedent(string)
 
     # filtered orders, trades ---
 
