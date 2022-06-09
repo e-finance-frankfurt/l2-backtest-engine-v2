@@ -12,7 +12,6 @@ logging.basicConfig(level=logging.CRITICAL) # logging.basicConfig(level=logging.
 import os
 import pandas as pd
 import random
-random.seed(42)
 import time
 
 SOURCE_DIRECTORY = "/home/jovyan/_shared_storage/read_only/efn2_backtesting"
@@ -622,7 +621,13 @@ class Backtest:
         # report result ---
 
         # TODO: ...
-        result = None
+        result = {
+            'Orders': self.agent.market_interface.order_list.copy(),
+            'Trades': self.agent.market_interface.trade_list.copy(),
+            'Exposure': self.agent.market_interface.exposure.copy(),
+            'PnL_realized': self.agent.market_interface.pnl_realized.copy(),
+            'PnL_unrealized': self.agent.market_interface.pnl_unrealized.copy(),
+        }
 
         # save report
         self.result_list.append(result)
@@ -641,6 +646,8 @@ class Backtest:
         # delete all Trade instances in Trade.history class attribute
         Trade.reset_history()
 
+        return True  # return successful episode
+
     # option 2: run multiple episodes ---
 
     def run_episode_generator(self, 
@@ -651,7 +658,8 @@ class Backtest:
         episode_shuffle:bool=True,
         episode_buffer:int=5,
         episode_length:int=30, 
-        num_episodes:int=10,        
+        num_episodes:int=10,
+        seed=None,
     ):
         """
         Run agent against a series of generated episodes, that is, run a similar 
@@ -674,6 +682,8 @@ class Backtest:
             int, ...
         :param num_episodes:
             int, ...
+        :param seed:
+            None or int, if specified seed is set for generating random numbers
         """
 
         # pd.Timestamp 
@@ -704,6 +714,9 @@ class Backtest:
         ]
 
         # ...
+        if seed:
+            random.seed(seed)
+
         if episode_shuffle:
             random.shuffle(episode_start_list)
 
