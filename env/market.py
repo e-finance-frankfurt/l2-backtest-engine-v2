@@ -9,6 +9,7 @@ import copy
 import numpy as np
 import pandas as pd
 
+
 class MarketState:
 
     instances = dict() # instance store
@@ -116,7 +117,9 @@ class MarketState:
 
         # ...
         try:
-            best_bid = max(self._posttrade_state_bid)
+            active_levels = [k for k, v in self._posttrade_state_bid.items()
+                             if len(v) > 0]
+            best_bid = max(active_levels)
         except:
             best_bid = None
         
@@ -131,7 +134,9 @@ class MarketState:
 
         # ...
         try:
-            best_ask = min(self._posttrade_state_ask)
+            active_levels = [k for k, v in self._posttrade_state_ask.items()
+                             if len(v) > 0]
+            best_ask = min(active_levels)
         except:
             best_ask = None
         
