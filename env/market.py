@@ -117,9 +117,9 @@ class MarketState:
 
         # ...
         try:
-            active_levels = [k for k, v in self._posttrade_state_bid.items()
-                             if len(v) > 0]
-            best_bid = max(active_levels)
+            best_bid = max(k for k, v in self._posttrade_state_bid.items()
+                if len(v) > 0
+            )
         except:
             best_bid = None
         
@@ -134,9 +134,9 @@ class MarketState:
 
         # ...
         try:
-            active_levels = [k for k, v in self._posttrade_state_ask.items()
-                             if len(v) > 0]
-            best_ask = min(active_levels)
+            best_ask = min(k for k, v in self._posttrade_state_ask.items()
+                if len(v) > 0
+            )
         except:
             best_ask = None
         
