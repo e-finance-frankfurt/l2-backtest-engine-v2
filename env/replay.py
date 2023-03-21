@@ -8,22 +8,25 @@ from env.market import MarketState, Order, Trade
 import copy
 import datetime
 import logging
-logging.basicConfig(level=logging.CRITICAL) # logging.basicConfig(level=logging.NOTSET)
+import sys
+# logging.basicConfig(level=logging.CRITICAL) # logging.basicConfig(level=logging.NOTSET)
+logging.basicConfig(stream=sys.stdout, level=logging.ERROR)
 import os
 import pandas as pd
 import random
 import time
 
-SOURCE_DIRECTORY = "/home/jovyan/_shared_storage/read_only/efn2_backtesting"
 DATETIME = "TIMESTAMP_UTC"
 
 class Episode:
 
     def __init__(self,
         identifier_list:list,
+        source_directory: str,
         episode_start_buffer:str,
         episode_start:str,
         episode_end:str,
+        sampling_freq:str or int=1,
     ):
         """
         Prepare a single episode as a generator. The episode is the main 
@@ -31,22 +34,28 @@ class Episode:
 
         :param identifier_list:
             pd.Timestamp, start building the market state, ignore agent
-
+        :param source_directory:
+            str, path to book and trade sources, e.g. "/home/jovyan/_shared_storage/read_only/efn2_backtesting"
         :param episode_start_buffer:
             str, timestamp from which to start building the market state, ignore agent
         :param episode_start:
             str, timestamp from which to start informing the agent
         :param episode_end:
             str, timestamp from which to stop informing the agent
+        :param sampling_freq:
+            int or str, int for event-based subsampling, every i-th event or str for time-based subsampling, e.g.
+            '1s' for last event in each second
         """
 
         # data settings
         self.identifier_list = identifier_list
+        self.source_directory = source_directory
 
         # ...
         self._episode_start_buffer = pd.Timestamp(episode_start_buffer)
         self._episode_start = pd.Timestamp(episode_start)
         self._episode_end = pd.Timestamp(episode_end)
+        self.sampling_freq = sampling_freq
 
         # setup routine
         self._episode_setup(
@@ -181,7 +190,7 @@ class Episode:
         date_string = str(date).replace("-", "")
 
         # path_list includes all paths available in directory
-        path_list = [os.path.join(pre, file) for pre, _, sub in os.walk(SOURCE_DIRECTORY)
+        path_list = [os.path.join(pre, file) for pre, _, sub in os.walk(self.source_directory)
             for file in sub if not file.startswith((".", "_"))
         ]
 
@@ -260,6 +269,19 @@ class Episode:
             df[DATETIME] = pd.DatetimeIndex(df[DATETIME]).tz_localize(None)
             # filter dataframe to include only rows with timestamp between timestamp_start and timestamp_end
             df = df[df[DATETIME].between(timestamp_start, timestamp_end)]
+
+            # Sampling frequency
+            if self.sampling_freq != 1:
+                if "BOOK" in identifier:
+                    if isinstance(self.sampling_freq, int):
+                        df = df.iloc[::self.sampling_freq]
+                    elif isinstance(self.sampling_freq, str):
+                        df = df.resample(self.sampling_freq, on=DATETIME).last()
+                        df = df.reset_index(drop=True).dropna().reset_index(drop=True)
+
+                # Merge trades based on datetime to account for sampling frequency
+                if "TRADES" in identifier:
+                    df = df.loc[df[DATETIME].isin(data_store[f'{identifier.replace("TRADES", "BOOK")}'][DATETIME])]
 
             # add dataframe to output dictionary
             data_store[identifier] = df
@@ -464,8 +486,8 @@ class Backtest:
         # from arguments
         self._agent = agent 
 
-        # TODO: ...
-        self.result_list = []    
+        # list capturing all results (orders, trades, exposure, pnl)
+        self.results = []
 
     # market/agent step ---
 
@@ -533,10 +555,12 @@ class Backtest:
 
     def run(self, 
         identifier_list:list,
+        source_directory:str,
         episode_start_buffer:str,
         episode_start:str,
         episode_end:str,
-        display_interval:int=100,
+        sampling_freq:int or str,
+        display_interval:int=10_000,
     ):  
         """
         Run agent against a single backtest instance based on a specified 
@@ -544,12 +568,17 @@ class Backtest:
 
         :param identifier_list:
             list, <market_id>.BOOK/TRADES identifier for each respective data source
+        :param source_directory:
+            str, path to book and trade sources, e.g. "/home/jovyan/_shared_storage/read_only/efn2_backtesting"
         :param episode_start_buffer:
             pd.Timestamp, 
         :param episode_start:
             pd.Timestamp, ...
         :param episode_end:
             pd.Timestamp, ...
+        :param sampling_freq:
+            int or str, int for event-based subsampling, every i-th event or str for time-based subsampling, e.g.
+            '1s' for last event in each second
         """
 
         # build episode ---
@@ -558,12 +587,15 @@ class Backtest:
         try:
             episode = Episode(
                 identifier_list=identifier_list,
+                source_directory=source_directory,
                 episode_start_buffer=episode_start_buffer,
                 episode_start=episode_start,
                 episode_end=episode_end,
+                sampling_freq=sampling_freq,
             )
         # return if episode could not be generated
-        except:
+        except Exception as e:
+            print(e)
             logging.info("(ERROR) could not run episode with the specified parameters")
             return # do nothing
 
@@ -630,7 +662,7 @@ class Backtest:
         }
 
         # save report
-        self.result_list.append(result)
+        self.results.append(result)
 
         # reset agent ---
 
@@ -652,13 +684,15 @@ class Backtest:
 
     def run_episode_generator(self, 
         identifier_list:list,
-        date_start:str="2016-01-01",
-        date_end:str="2016-03-31",
-        episode_interval:int=30, # timestamp quantization
+        source_directory: str,
+        date_start:str,
+        date_end:str,
+        episode_interval:int=30,
         episode_shuffle:bool=True,
         episode_buffer:int=5,
         episode_length:int=30, 
         num_episodes:int=10,
+        sampling_freq:int or str=1,
         seed=None,
     ):
         """
@@ -668,6 +702,8 @@ class Backtest:
 
         :param identifier_list:
             list, <market_id>.BOOK/TRADES identifier for each respective data source
+        :param source_directory:
+            str, path to book and trade sources, e.g. "/home/jovyan/_shared_storage/read_only/efn2_backtesting"
         :param date_start:
             str, start date after which episodes are generated, default is "2016-01-01"
         :param date_end:
@@ -682,14 +718,21 @@ class Backtest:
             int, ...
         :param num_episodes:
             int, ...
+        :param sampling_freq:
+            int or str, int for event-based subsampling, every i-th event or str for time-based subsampling, e.g.
+            '1s' for last event in each second
         :param seed:
             None or int, if specified seed is set for generating random numbers
         """
 
+        # Assert
+        assert episode_interval - episode_buffer - episode_length >= 0,\
+            'Episode interval must be larger or equal to sum of episode buffer and length'
+
         # pd.Timestamp 
         date_start = pd.Timestamp(date_start)
         date_end = pd.Timestamp(date_end)
-        
+
         # pd.Timedelta
         episode_buffer = pd.Timedelta(episode_buffer, "min")
         episode_length = pd.Timedelta(episode_length, "min")
@@ -730,10 +773,13 @@ class Backtest:
         while episode_counter < min(len(episode_start_list), num_episodes):
             
             # ...
-            status = self.run(identifier_list=identifier_list,
+            status = self.run(
+                identifier_list=identifier_list,
+                source_directory=source_directory,
                 episode_start_buffer=episode_start_list[episode_index],
-                episode_start=episode_start_list[episode_index] + pd.Timedelta(episode_buffer, "min"),
-                episode_end=episode_start_list[episode_index] + pd.Timedelta(episode_length, "min"),
+                episode_start=episode_start_list[episode_index] + episode_buffer,
+                episode_end=episode_start_list[episode_index] + episode_buffer + episode_length,
+                sampling_freq=sampling_freq,
             )
 
             # in either case, update index
@@ -745,11 +791,13 @@ class Backtest:
 
     def run_episode_broadcast(self, 
         identifier_list:list,
-        date_start:str="2016-01-01", 
-        date_end:str="2016-03-31", 
+        source_directory:str,
+        date_start:str,
+        date_end:str,
         time_start_buffer:str="08:00:00",
         time_start:str="08:10:00", 
-        time_end:str="16:30:00", 
+        time_end:str="16:30:00",
+        sampling_freq:int or str=1,
     ):
         """
         Run agent against a series of broadcast episodes, that is, run the same 
@@ -759,6 +807,8 @@ class Backtest:
 
         :param identifier_list:
             list, <market_id>.BOOK/TRADES identifier for each respective data source
+        :param source_directory:
+            str, path to book and trade sources, e.g. "/home/jovyan/_shared_storage/read_only/efn2_backtesting"
         :param date_start:
             str, start date after which episodes are generated, default is "2016-01-01"
         :param date_end:
@@ -769,6 +819,9 @@ class Backtest:
             bool, ...
         :param time_end:
             int, ...
+        :param sampling_freq:
+            int or str, int for event-based subsampling, every i-th event or str for time-based subsampling, e.g.
+            '1s' for last event in each second
         """
 
         # pd.Timestamp
@@ -803,15 +856,21 @@ class Backtest:
         for episode_date in episode_date_list:
 
             # ...
-            self.run(identifier_list=identifier_list,
+            self.run(
+                identifier_list=identifier_list,
+                source_directory=source_directory,
                 episode_start_buffer=episode_date + time_start_buffer,
                 episode_start=episode_date + time_start,
                 episode_end=episode_date + time_end,
+                sampling_freq=sampling_freq,
             )
 
     def run_episode_list(self, 
         identifier_list:list,
-        episode_list:list, 
+        source_directory:str,
+        episode_list:list,
+        sampling_freq:int or str = 1,
+
     ):
         """
         Run agent against a series of specified episodes, that is, work through 
@@ -819,8 +878,13 @@ class Backtest:
 
         :param identifier_list:
             list, <market_id>.BOOK/TRADES identifier for each respective data source
+        :param source_directory:
+            str, path to book and trade sources, e.g. "/home/jovyan/_shared_storage/read_only/efn2_backtesting"
         :param episode_list:
             list, includes (episode_start_buffer, episode_start, episode_end) tuples
+        :param sampling_freq:
+            int or str, int for event-based subsampling, every i-th event or str for time-based subsampling, e.g.
+            '1s' for last event in each second
         """
 
         # iterate over episode_list ---
@@ -829,10 +893,11 @@ class Backtest:
         for episode_start_buffer, episode_start, episode_end in episode_list:
 
             # ...
-            self.run(identifier_list=identifier_list,
+            self.run(
+                identifier_list=identifier_list,
+                source_directory=source_directory,
                 episode_start_buffer=pd.Timestamp(episode_start_buffer), 
                 episode_start=pd.Timestamp(episode_start), 
-                episode_end=pd.Timestamp(episode_end), 
+                episode_end=pd.Timestamp(episode_end),
+                sampling_freq=sampling_freq,
             )
-
-

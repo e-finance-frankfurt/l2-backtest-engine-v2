@@ -12,20 +12,26 @@ import textwrap
 
 class BaseAgent(abc.ABC):
 
-    def __init__(self, name):
+    def __init__(self, name, exposure_limit=1e6, latency=10, transaction_cost_factor=5e-05):
         """
         Trading agent base class. Subclass BaseAgent to define how a concrete
         Agent should act given different market situations.
 
         :param name:
             str, agent name
+        :param transaction_cost_factor:
+            float, variable transaction cost factor
+        :param exposure_limit:
+            int, exposure limit in €
+        :param latency:
+            int, time in microseconds between agent submits a message (e.g. order deletion) and market receives message
         """
 
         # agent has market access via market_interface instance
         self.market_interface = MarketInterface(
-            exposure_limit=1e6, # ...
-            latency=10, # in us (microseconds) 
-            transaction_cost_factor=1e-3, # 10 bps
+            exposure_limit=exposure_limit, # ...
+            latency=latency, # in us (microseconds)
+            transaction_cost_factor=transaction_cost_factor,
         )
 
         # ...
@@ -106,9 +112,9 @@ class BaseAgent(abc.ABC):
 class MarketInterface: 
 
     def __init__(self,
-        exposure_limit:float=1e6,
-        latency:int=10, # in us (microseconds) 
-        transaction_cost_factor:float=1e-3, # 10 bps
+        exposure_limit:float,
+        latency:int, # in us (microseconds)
+        transaction_cost_factor:float, # 0.5 bps
     ):
         """
         The market interface is used to interact with the market, that is, 

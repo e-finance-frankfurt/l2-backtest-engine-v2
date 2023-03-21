@@ -58,8 +58,6 @@ class Agent(BaseAgent):
         super(Agent, self).__init__(name, *args, **kwargs)
 
         # TODO: YOUR IMPLEMENTATION GOES HERE
-        
-        pass
 
     def on_quote(self, market_id:str, book_state:pd.Series):
         """
@@ -72,7 +70,6 @@ class Agent(BaseAgent):
         """
 
         # TODO: YOUR IMPLEMENTATION GOES HERE
-        
         pass
 
     def on_trade(self, market_id:str, trades_state:pd.Series):
@@ -86,7 +83,6 @@ class Agent(BaseAgent):
         """
 
         # TODO: YOUR IMPLEMENTATION GOES HERE
-        
         pass
 
     def on_time(self, timestamp:pd.Timestamp, timestamp_next:pd.Timestamp):
@@ -102,13 +98,26 @@ class Agent(BaseAgent):
         """
 
         # TODO: YOUR IMPLEMENTATION GOES HERE
-        
         pass
+
 
 if __name__ == "__main__":
 
-    # TODO: SELECT SOURCES. You may delete or comment out the rest.
+    # TODO: INSTANTIATE AGENT. Please refer to the corresponding file for more information.
+    agent = Agent(
+        name="test_agent",
+        exposure_limit=1_000_000,  # exposure limit of EUR 1 million
+        latency=10,  # latency in us (microseconds)
+        transaction_cost_factor=5e-5,  # 0.5 bps variable transaction cost
+        # ...
+    )
 
+    # TODO: INSTANTIATE BACKTEST. Please refer to the corresponding file for more information.
+    backtest = Backtest(
+        agent=agent,
+    )
+
+    # TODO: SELECT SOURCES. You may delete or comment out the rest.
     identifier_list = [
         # ADIDAS
         "Adidas.BOOK", "Adidas.TRADES",
@@ -132,56 +141,50 @@ if __name__ == "__main__":
         "DeutscheBörse.BOOK", "DeutscheBörse.TRADES",
     ]
 
-    # TODO: INSTANTIATE AGENT. Please refer to the corresponding file for more 
-    # information. 
-
-    agent = Agent(
-        name="test_agent",
-        # ...
-    )
-
-    # TODO: INSTANTIATE BACKTEST. Please refer to the corresponding file for 
-    # more information. 
-    
-    backtest = Backtest(
-        agent=agent, 
-    )
-
-    # TODO: RUN BACKTEST. Please refer to the corresponding file for more 
-    # information. 
-
+    # TODO: RUN BACKTEST. Please refer to the corresponding file for more information.
     # Option 1: run agent against a series of generated episodes, that is, 
     # generate episodes with the same episode_buffer and episode_length
-    backtest.run_episode_generator(identifier_list=identifier_list,
-        date_start="2021-01-01", 
+    backtest.run_episode_generator(
+        identifier_list=identifier_list,
+        source_directory=r"C:\Users\Data\EFN II",
+        date_start="2021-01-02",
         date_end="2021-02-28", 
-        episode_interval=30, 
-        episode_shuffle=True, 
-        episode_buffer=5, 
-        episode_length=30, 
-        num_episodes=10, 
+        episode_interval=30,
+        episode_shuffle=False,
+        episode_buffer=5,
+        episode_length=25,
+        num_episodes=10,
+        seed=1337,
     )
 
-    # Option 2: run agent against a series of broadcast episodes, that is, 
-    # broadcast the same timestamps for every date between date_start and 
-    # date_end
-    backtest.run_episode_broadcast(identifier_list=identifier_list,
-        date_start="2021-01-01", 
-        date_end="2021-02-28", 
-        time_start_buffer="08:00:00", 
-        time_start="08:30:00", 
-        time_end="16:30:00",
-    )
-
-    # Option 3: run agent against a series of specified episodes, that is, 
+    # Option 2: run agent against a series of specified episodes, that is,
     # list a tuple (episode_start_buffer, episode_start, episode_end) for each 
     # episode
-    backtest.run_episode_list(identifier_list=identifier_list,
+    backtest.run_episode_list(
+        identifier_list=identifier_list,
+        source_directory=r"C:\Users\Data\EFN II",
         episode_list=[
-            ("2021-01-01T08:00:00", "2021-01-01T08:30:00", "2021-01-01T09:30:00"), 
-            ("2021-01-01T15:00:00", "2021-01-01T15:30:00", "2021-01-01T16:30:00"), 
+            ("2021-01-04T08:00:00", "2021-01-04T08:05:00", "2021-01-04T08:06:00"),
+            ("2021-01-04T15:00:00", "2021-01-04T15:05:00", "2021-01-04T15:06:00"),
             # ... 
         ],
     )
 
+    # Option 3: run agent against a series of broadcast episodes, that is,
+    # broadcast the same timestamps for every date between date_start and
+    # date_end
+    backtest.run_episode_broadcast(
+        identifier_list=identifier_list,
+        source_directory=r"C:\Users\Data\EFN II",
+        date_start="2021-01-02",
+        date_end="2021-01-07",
+        time_start_buffer="08:00:00",
+        time_start="08:05:00",
+        time_end="08:06:00",
+    )
 
+    # TODO: EVALUATE YOUR BACKTESTING RESULTS
+    # E.g., you can use result list backtest.results to analyze your runs
+    pnl_realized_all_runs = [d['PnL_realized'] for d in backtest.results]
+    pnl_realized_all_runs = pd.DataFrame(pnl_realized_all_runs)
+    pnl_realized_all_runs.to_csv('PnL_realized_all_runs.csv', index_label='Run')
