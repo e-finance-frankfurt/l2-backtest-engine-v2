@@ -2,7 +2,7 @@
 
 This is a project from the chair of e-Finance at Goethe University Frankfurt.
 
-# Documentation
+# Documentation: Step by step
 
 ## Write your custom trading agent
 
