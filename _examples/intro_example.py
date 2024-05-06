@@ -109,7 +109,7 @@ if __name__ == "__main__":
         # # Deutsche Bank
         # "DeutscheBank.BOOK", "DeutscheBank.TRADES",
         # # DeutscheBörse
-        # "DeutscheBörse.BOOK", "DeutscheBörse.TRADES",
+        # "DeutscheBoerse.BOOK", "DeutscheBoerse.TRADES",
     ]
 
     # Option 1: run agent against a series of generated episodes, that is,
@@ -119,10 +119,10 @@ if __name__ == "__main__":
         source_directory=r"C:\Users\cesto\Data\EFN II",
         date_start="2021-01-02",
         date_end="2021-02-28", 
-        episode_interval=30,
+        episode_interval=20,
         episode_shuffle=False,
         episode_buffer=5,
-        episode_length=5,
+        episode_length=15,
         num_episodes=2,
         seed=123,
     )

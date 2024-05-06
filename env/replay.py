@@ -312,10 +312,11 @@ class Episode:
         })
         df_list = list(map(add_prefix, id_list, df_list))
 
-        # join df_list into df_merged (full outer join)
+        # Merge that also works under pandas 2.2.0
         df_merged = pd.concat([
             df.set_index(DATETIME) for df in df_list
-        ], axis=1, join="outer").reset_index()
+        ], axis=1, join="outer", sort=True)
+        df_merged = df_merged.reset_index()
 
         # split df_merged into original df_list (all df are of equal length)
         df_list = [pd.concat([

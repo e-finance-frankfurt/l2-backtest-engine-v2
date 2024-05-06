@@ -7,6 +7,7 @@ from env.replay import Backtest
 import numpy as np
 import pandas as pd
 
+
 class Agent(BaseAgent):
 
     def __init__(self, name, *args, **kwargs):
@@ -138,7 +139,7 @@ if __name__ == "__main__":
         # Deutsche Bank
         "DeutscheBank.BOOK", "DeutscheBank.TRADES",
         # DeutscheBörse
-        "DeutscheBörse.BOOK", "DeutscheBörse.TRADES",
+        "DeutscheBoerse.BOOK", "DeutscheBoerse.TRADES",
     ]
 
     # TODO: RUN BACKTEST. Please refer to the corresponding file for more information.
@@ -146,13 +147,13 @@ if __name__ == "__main__":
     # generate episodes with the same episode_buffer and episode_length
     backtest.run_episode_generator(
         identifier_list=identifier_list,
-        source_directory=r"C:\Users\Data\EFN II",
+        source_directory=r"C:\Users\Tino\Data\EFN2_MarketData_Part1",
         date_start="2021-01-02",
         date_end="2021-02-28", 
-        episode_interval=30,
+        episode_interval=10,
         episode_shuffle=False,
         episode_buffer=5,
-        episode_length=25,
+        episode_length=5,
         num_episodes=10,
         seed=1337,
     )
@@ -162,7 +163,7 @@ if __name__ == "__main__":
     # episode
     backtest.run_episode_list(
         identifier_list=identifier_list,
-        source_directory=r"C:\Users\Data\EFN II",
+        source_directory=r"C:\Users\Tino\Data\EFN2",
         episode_list=[
             ("2021-01-04T08:00:00", "2021-01-04T08:05:00", "2021-01-04T08:06:00"),
             ("2021-01-04T15:00:00", "2021-01-04T15:05:00", "2021-01-04T15:06:00"),

@@ -169,25 +169,25 @@ if __name__ == "__main__":
 
     identifier_list = [
         # ADIDAS
-        "Adidas.BOOK", "Adidas.TRADES",
-        # ALLIANZ
-        "Allianz.BOOK", "Allianz.TRADES",
-        # BASF
-        "BASF.BOOK", "BASF.TRADES",
-        # Bayer
-        "Bayer.BOOK", "Bayer.TRADES",
-        # BMW
-        "BMW.BOOK", "BMW.TRADES",
-        # Continental
-        "Continental.BOOK", "Continental.TRADES",
-        # Covestro
-        "Covestro.BOOK", "Covestro.TRADES",
-        # Daimler
-        "Daimler.BOOK", "Daimler.TRADES",
-        # Deutsche Bank
-        "DeutscheBank.BOOK", "DeutscheBank.TRADES",
-        # DeutscheBörse
-        "DeutscheBörse.BOOK", "DeutscheBörse.TRADES",
+        #"Adidas.BOOK", "Adidas.TRADES",
+        ## ALLIANZ
+        #"Allianz.BOOK", "Allianz.TRADES",
+        ## BASF
+        #"BASF.BOOK", "BASF.TRADES",
+        ## Bayer
+        #"Bayer.BOOK", "Bayer.TRADES",
+        ## BMW
+        #"BMW.BOOK", "BMW.TRADES",
+        ## Continental
+        #"Continental.BOOK", "Continental.TRADES",
+        ## Covestro
+        #"Covestro.BOOK", "Covestro.TRADES",
+        ## Daimler
+        #"Daimler.BOOK", "Daimler.TRADES",
+        ## Deutsche Bank
+        #"DeutscheBank.BOOK", "DeutscheBank.TRADES",
+        # DeutscheBoerse
+        "DeutscheBoerse.BOOK", "DeutscheBoerse.TRADES",
     ]
 
     agent = SimpleAgent(
@@ -203,32 +203,38 @@ if __name__ == "__main__":
 
     # Option 1: run agent against a series of generated episodes, that is, 
     # generate episodes with the same episode_buffer and episode_length
-    """
-    backtest.run_episode_generator(identifier_list=identifier_list,
-        date_start="2021-01-04",
-        date_end="2021-01-05",
-        episode_interval=10,
-        episode_shuffle=True,
-        episode_buffer=5, 
-        episode_length=10,
-        num_episodes=2,
-    )
+
+    #backtest.run_episode_generator(
+    #    identifier_list=identifier_list,
+    #    source_directory=r'C:\Users\Tino\Data\EFN2_MarketData_Part1',
+    #    date_start="2021-01-04",
+    #    date_end="2021-01-05",
+    #    episode_interval=15,
+    #    episode_shuffle=True,
+    #    episode_buffer=5,
+    #    episode_length=10,
+    #    num_episodes=2,
+    #)
 
     # Option 2: run agent against a series of broadcast episodes, that is, 
     # broadcast the same timestamps for every date between date_start and 
     # date_end
-    backtest.run_episode_broadcast(identifier_list=identifier_list,
-        date_start="2021-01-01", 
-        date_end="2021-02-28", 
-        time_start_buffer="08:00:00", 
-        time_start="08:30:00", 
-        time_end="16:30:00",
-    )
-    """
+    #backtest.run_episode_broadcast(
+    #    identifier_list=identifier_list,
+    #    source_directory=r'C:\Users\Tino\Data\EFN2_MarketData_Part1',
+    #    date_start="2021-01-01",
+    #    date_end="2021-02-28",
+    #    time_start_buffer="08:00:00",
+    #    time_start="08:30:00",
+    #    time_end="16:30:00",
+    #)
+
     # Option 3: run agent against a series of specified episodes, that is, 
     # list a tuple (episode_start_buffer, episode_start, episode_end) for each 
     # episode
-    backtest.run_episode_list(identifier_list=identifier_list,
+    backtest.run_episode_list(
+        identifier_list=identifier_list,
+        source_directory=r'C:\Users\Tino\Data\EFN2_MarketData_Part1',
         episode_list=[
             ("2021-01-04T08:00:00", "2021-01-04T08:20:00", "2021-01-04T08:40:00"),
             ("2021-01-05T08:00:00", "2021-01-05T08:20:00", "2021-01-05T08:40:00"),
