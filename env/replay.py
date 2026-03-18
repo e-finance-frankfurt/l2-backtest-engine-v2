@@ -254,9 +254,14 @@ class Episode:
             # load event_id 'BOOK' as .csv(.gz)
             if "BOOK" in identifier:
                 df = pd.read_csv(path_store[identifier], parse_dates=[DATETIME])
+                # Between some timestamps there are no LOB changes - filter them out
+                #df = pd.concat([df.drop_duplicates(subset=[c for c in df.columns[1:]], keep='first'), df.tail(1)]).reset_index(drop=True)
+                df = df.drop_duplicates(subset=[c for c in df.columns[1:]], keep='first').reset_index(drop=True)
+
             # load event_id 'TRADES' as .json
             if "TRADES" in identifier:
                 df = pd.read_json(path_store[identifier], convert_dates=True)
+                df = df.loc[df[DATETIME].isin(data_store[f'{identifier.replace("TRADES", "BOOK")}'][DATETIME])]
 
             # if dataframe is empty, raise Exception that is caught in calling method
             if not len(df.index) > 0:
@@ -271,6 +276,8 @@ class Episode:
             df = df[df[DATETIME].between(timestamp_start, timestamp_end)]
 
             # Sampling frequency
+            # ToDo: Sampling frequency does not work properly yet. Potential problem: Trades are not resampled in the same way?
+            # Maybe we drop timestamps that are still available in the trade data.
             if self.sampling_freq != 1:
                 if "BOOK" in identifier:
                     if isinstance(self.sampling_freq, int):
@@ -630,7 +637,7 @@ class Backtest:
             # step 1: update book_state -> based on original data
             # step 2: match standing orders -> based on pre-trade state
             for market_id in market_list:
-                self._market_step(market_id=market_id, 
+                self._market_step(market_id=market_id,
                     book_update=update_store.get(f"{market_id}.BOOK"),
                     trade_update=update_store.get(f"{market_id}.TRADES", pd.Series([None] * 3)), # optional, default to empty pd.Series
                 )
