@@ -26,7 +26,7 @@ class TwapAgent(BaseAgent):
                  algo_start_time: str,
                  algo_end_time: str,):
         """
-        Trading agent implementation example. Improved version.
+        Trading agent implementation example.
 
         :param name:
             str, agent name
