@@ -41,8 +41,8 @@ class SimpleAgent(BaseAgent):
 
         # dynamic attributes
         self.trading_phase = False  # indicates whether algo is ready to trade
-        self.max_price = np.NaN  # initialize max price of stock
-        self.min_price = np.NaN  # initialize max price of stock
+        self.max_price = np.nan  # initialize max price of stock
+        self.min_price = np.nan  # initialize max price of stock
 
     def on_quote(self, market_id:str, book_state:pd.Series):
         """
@@ -53,63 +53,57 @@ class SimpleAgent(BaseAgent):
         :param book_state:
             pd.Series, including timestamp, bid/ask price/size for 10 levels
         """
-        if self.trading_phase:
+        
 
-            # Calculate midpoint
-            midpoint = (book_state['L1-BidPrice'] + book_state['L1-AskPrice']) / 2
-            midpoint = np.round(midpoint, 4)
-            # alternative: midpoint = self.markets[market_id].mid_point
+        # Calculate midpoint
+        midpoint = (book_state['L1-BidPrice'] + book_state['L1-AskPrice']) / 2
+        midpoint = np.round(midpoint, 4)
+        # alternative: midpoint = self.markets[market_id].mid_point
 
-            # Update min and max prices of episode
-            self.max_price = max(midpoint, self.max_price)
-            self.min_price = min(midpoint, self.min_price)
+        # Update min and max prices of episode
+        #self.max_price = ...
+        #self.min_price = ...
 
-            # Calculate current drawdown & upswing
-            drawdown = min((midpoint/self.max_price - 1), 0)
-            upswing = max((midpoint/self.min_price - 1), 0)
+        # Calculate current drawdown & upswing
+        #drawdown = ...
+        #upswing = ...
 
-            # Conditions for opening a position
-            # (1) no position is open
-            # (2) no order is waiting for execution
-            if not self.market_interface.exposure[market_id] and \
-               not self.market_interface.get_filtered_orders(
-                   market_id, status="ACTIVE"):
-
-                # Submit market buy order if drawdown exceeds barrier
-                if abs(drawdown) > self.barrier_open:
-                    self.market_interface.submit_order(
-                        market_id, "buy", self.quantity)
-
-                # Submit market sell order if upswing exceeds barrier
-                elif abs(upswing) > self.barrier_open:
-                    self.market_interface.submit_order(
-                        market_id, "sell", self.quantity)
-
+        # Conditions for opening a position
+        # (1) ....
+        # (2) ....
+        
+        
+        
+        
+            # Submit market buy order if drawdown exceeds barrier
+            # if ... :
+                
+            # Submit market sell order if upswing exceeds barrier
+            # if ... :
+                
+             
+                
+             
+                
+             
         # Conditions for closing long position
-        # (1) Long position exists for this market
-        if self.market_interface.exposure[market_id] > 0:
+        # (1) ...
+        #if self.market_interface.exposure[market_id] ??? :
+            
             # Get price of trade
-            exec_price = self.market_interface.get_filtered_trades(market_id)[-1].price
-            trade_profit = midpoint/exec_price - 1
-
+            
             # Close long position if
-            # (2) barrier_close is hit
-            if trade_profit > self.barrier_close:
-                self.market_interface.submit_order(market_id, "sell", self.quantity)
-                self.max_price = midpoint  # reset current max
+            # (2) ...
+
 
         # Conditions to for closing short position
-        # (1) Short position exists for this market
-        elif self.market_interface.exposure[market_id] < 0:
+        # (1) ...
+        #if self.market_interface.exposure[market_id] ??? :
+            
             # Get price of trade
-            exec_price = self.market_interface.get_filtered_trades(market_id)[-1].price
-            trade_profit = -1 * (midpoint/exec_price - 1)
-
             # Close short position if
-            # (2) barrier_close is hit
-            if trade_profit > self.barrier_close:
-                self.market_interface.submit_order(market_id, "buy", self.quantity)
-                self.min_price = midpoint  # reset current min
+            # (2) ...
+ 
 
 
     def on_trade(self, market_id:str, trades_state:pd.Series):
@@ -136,34 +130,14 @@ class SimpleAgent(BaseAgent):
         """
 
         # Enter trading phase if
-        # (1) current time < end_time
-        # (2) trading_phase is False up to now
-        if timestamp.time() < self.end_time and not self.trading_phase:
-            print('Algo is now able to trade...')
-            self.trading_phase = True
+        # (1) ...
+        # (2) ...
+        #if timestamp.time() ...
 
         # Close trading phase if
-        # (1) current time > end_time
-        # (2) trading_phase is True up to now
-        elif timestamp.time() > self.end_time and self.trading_phase:
-
-            for market_id in self.market_interface.market_state_list.keys():
-
-                # cancel active orders for this market
-                [self.market_interface.cancel_order(order) for order in
-                 self.market_interface.get_filtered_orders(
-                     market_id, status="ACTIVE")]
-
-                # close positions for this market
-                if self.market_interface.exposure[market_id] > 0:
-                    self.market_interface.submit_order(
-                        market_id, "sell", self.quantity)
-                if self.market_interface.exposure[market_id] < 0:
-                    self.market_interface.submit_order(
-                        market_id, "buy", self.quantity)
-            # Set bool to False
-            self.trading_phase = False
-
+        # (1) ...
+        # (2) ...
+        #elif timestamp.time() ...
 
 if __name__ == "__main__":
 
@@ -194,7 +168,7 @@ if __name__ == "__main__":
         name="SimpleAgent1",
         barrier_open=0.003,
         barrier_close=0.003,
-        quantity=100,
+        quantity=50,
     )
     
     backtest = Backtest(
@@ -236,8 +210,8 @@ if __name__ == "__main__":
         identifier_list=identifier_list,
         source_directory=r'C:\Users\Tino\Data\EFN2_MarketData_Part1',
         episode_list=[
-            ("2021-01-04T08:00:00", "2021-01-04T08:20:00", "2021-01-04T08:40:00"),
-            ("2021-01-05T08:00:00", "2021-01-05T08:20:00", "2021-01-05T08:40:00"),
+            ("2021-01-07T08:00:00", "2021-01-07T08:20:00", "2021-01-07T10:00:00"),
+            ("2021-01-08T08:00:00", "2021-01-08T08:20:00", "2021-01-08T10:00:00"),
             # ... 
         ],
     )
