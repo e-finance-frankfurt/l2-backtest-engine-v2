@@ -9,7 +9,7 @@ import pandas as pd
 import datetime
 
 
-class SimpleAgent(BaseAgent):
+class FirstAgent(BaseAgent):
 
     def __init__(self, name: str, barrier_open: float,
                  barrier_close: float, quantity: int):
@@ -28,7 +28,7 @@ class SimpleAgent(BaseAgent):
             int, defines the amount of shares that are traded
         """
 
-        super(SimpleAgent, self).__init__(name)
+        super(FirstAgent, self).__init__(name)
 
         # static attributes from arguments
         self.quantity = quantity
